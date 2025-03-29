@@ -1,4 +1,5 @@
-﻿#include <iostream>
+﻿#define _CRTDBG_MAP_ALLOC
+#include <iostream>
 #include <cstdlib>
 #include <algorithm>
 #include <vector>
@@ -14,11 +15,23 @@ void test5();
 
 int main()
 {
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+
     test1(); //ok
     test2(); //ok
     test3(); //ok
     test4(); //ok
     test5(); //ok
+
+    _CrtDumpMemoryLeaks();
+
     return 0;
 }
 

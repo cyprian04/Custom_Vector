@@ -77,6 +77,7 @@ public:
 		}
 		return *this;
 	}
+public:
 	void push_back(const T& value) {
 		if (m_size + 1 == m_capacity) {
 			m_capacity *= 2;
@@ -91,8 +92,11 @@ public:
 		m_buffer[m_size++] = value;
 	}
 	void pop() { m_buffer[m_size--] = 0; }
+	bool empty() const { return m_size == 0; }
+	std::size_t size() const { return m_size; }
+	std::size_t capacity() const { return m_capacity; }
 	friend std::ostream& operator<<(std::ostream& os, const Vector<T>& vec) {
-		for (const auto element : vec) os << element << " ";
+		for (const auto element : vec) os << element << ", ";
 		return os;
 	}
 public:
