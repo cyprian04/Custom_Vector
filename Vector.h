@@ -78,6 +78,16 @@ public:
 		return *this;
 	}
 public:
+	T& at(const std::size_t index)
+	{
+		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
+		return m_buffer[index];
+	}
+	const T& at(const std::size_t index) const
+	{
+		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
+		return m_buffer[index];
+	}
 	void push_back(const T& value) {
 		if (m_size + 1 == m_capacity) {
 			m_capacity *= 2;
@@ -95,6 +105,9 @@ public:
 	bool empty() const { return m_size == 0; }
 	std::size_t size() const { return m_size; }
 	std::size_t capacity() const { return m_capacity; }
+public:
+	T& operator[](const std::size_t index) { return m_buffer[index]; }
+	const T& operator[](const std::size_t index) const { return m_buffer[index]; }
 	friend std::ostream& operator<<(std::ostream& os, const Vector<T>& vec) {
 		for (const auto element : vec) os << element << ", ";
 		return os;

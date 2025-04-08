@@ -11,6 +11,8 @@ void test2();
 void test3();
 void test4();
 void test5();
+void test6();
+void test7();
 
 
 int main()
@@ -24,14 +26,20 @@ int main()
     _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
     _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
 
-    test1(); //ok
-    test2(); //ok
-    test3(); //ok
-    test4(); //ok
-    test5(); //ok
+    try {
+        test1(); //ok
+        test2(); //ok
+        test3(); //ok
+        test4(); //ok
+        test5(); //ok
+        test6(); //ok
+        test7(); 
+    }
+    catch (std::exception& e) {
+        std::cout << std::endl << e.what();
+    }
 
     _CrtDumpMemoryLeaks();
-
     return 0;
 }
 
@@ -98,4 +106,28 @@ void test5()
     for (auto elemnet : v2) std::cout << elemnet << " ";
 
     std::cout << std::endl << v2;
+    std::cout << std::endl;
+}
+
+void test6()
+{
+    Vector<int> v1{ 100, 50, 25, 5, 0 };
+    std::cout << v1[1] << std::endl;
+    v1[0] = -20; // correctly doesnt allow that if our vec is const type
+    std::cout << v1[0];
+    std::cout << std::endl;
+
+    const Vector<int> v2{ 0, 520, 215, 15, 5 };
+    for (const auto& element : v2) std::cout << element;
+    std::cout << std::endl;
+}
+
+void test7()
+{
+    Vector<int> v1{ 100, 50, 25, 5, 0 };
+    std::cout << v1.at(2) << std::endl;
+    v1.at(2) = 3; // correctly doesnt allow that if our vec is const type
+    std::cout << v1.at(2) << std::endl;
+    //std::cout << v1.at(-999) << std::endl; //triggers except correctly: Index out of bounds 
+    std::cout << std::endl;
 }
