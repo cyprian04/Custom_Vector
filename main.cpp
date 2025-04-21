@@ -105,46 +105,61 @@ namespace TestsForInts {
 }
 
 namespace TestsForStructs {
-    struct A {
 
-        A() { std::cout << "created obj A!" << std::endl; }
-        ~A() { std::cout << "destroyed obj A!" << std::endl; }
-        A(const A& rhs) = delete;
-        A(A&&) noexcept { std::cout << "moved obj A!" << std::endl; a = 0; c = char(0); }
+    struct Simple_struct {
+
+        Simple_struct() { 
+            std::cout << "created obj Simple_struct!" << std::endl;
+        }
+        ~Simple_struct() { 
+            std::cout << "destroyed obj Simple_struct!" << std::endl; 
+        }
+        Simple_struct(const Simple_struct& rhs) = delete;
+        Simple_struct(Simple_struct&&) noexcept { 
+            std::cout << "moved obj Simple_struct!" << std::endl; a = 0; c = char(0);
+        }
         int a = 4;
         char c = 'A';
     };
-    struct LeakTest {
-        static int alive;
-        int* data;
 
-        LeakTest() {
-            data = new int[100];
-            ++alive;
-            std::cout << "LeakTest ctor, alive = " << alive << "\n";
+    struct Advanced_struct {
+        Advanced_struct()
+        :
+            data(new int[100])
+        {
+            std::cout << "created obj Advanced_struct!" << std::endl;
         }
-        ~LeakTest() {
+        Advanced_struct(Advanced_struct&& o) noexcept
+            : data(o.data)
+        {
+            o.data = nullptr;
+            std::cout << "moved obj Advanced_struct!" << std::endl;
+        }
+        Advanced_struct(const Advanced_struct&) = delete; //non copable for now
+        Advanced_struct& operator=(const Advanced_struct&) = delete;
+        ~Advanced_struct() {
             delete[] data;
-            --alive;
-            std::cout << "LeakTest dtor, alive = " << alive << "\n";
+            std::cout << "destroyed obj Advanced_struct!" << std::endl;
         }
+        int* data;
     };
-    int LeakTest::alive = 0;
 
     void test1() {
-        Vector<A> vec;
-        vec.push_back(A());
-        vec.push_back(A());
+        std::cout << std::endl;
+        Vector<Simple_struct> vec;
+        vec.emplace_back(Simple_struct());
+        vec.emplace_back(Simple_struct());
         vec.pop_back();
-        vec.push_back(A());
+        vec.emplace_back(Simple_struct());
     }
 
     void test2() {
-       Vector<LeakTest> vec;
-       vec.push_back(LeakTest());
-       vec.push_back(LeakTest());
+       std::cout << std::endl;
+       Vector<Advanced_struct> vec;
+       vec.emplace_back(Advanced_struct());
+       vec.emplace_back(Advanced_struct());
        vec.pop_back();
-       vec.push_back(LeakTest());
+       vec.emplace_back(Advanced_struct());
     }
 }
 
@@ -168,21 +183,10 @@ int main()
        TestsForInts::test6(); //ok
        TestsForInts::test7(); //ok
 
-       TestsForStructs::test1();
-      // TestsForStructs::test2();
+       TestsForStructs::test1(); //ok
+       TestsForStructs::test2(); //ok
 
 
-       ///// on stack, alignas(type) allign space between blocks for specified type if need 
-       //alignas(A) char table[sizeof(A)];
-       //A* ptr = new(table) A();
-       //
-       //// on heap
-       //void* p = ::operator new(20);
-       //A* a = new(p) A();
-       //a->~A();
-       //A* b = new(p) A();
-       //A c = std::move_if_noexcept(*b);
-       //::operator delete(p);
     }
     catch (std::exception& e) {
         std::cout << std::endl << e.what();

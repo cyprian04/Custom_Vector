@@ -82,22 +82,20 @@ public:
 		deallocate(m_buffer);
 	}
 public:
-	T& at(const std::size_t index) {
-		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
-		return m_buffer[index];
-	}
-	const T& at(const std::size_t index) const {
-		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
-		return m_buffer[index];
+	template <typename... Arguments>
+	void emplace_back(Arguments&&... args) {
+		enlarge_capacity_if_need(m_size + 1);
+		new(m_buffer + m_size) T(std::forward<Arguments>(args)...);
+		m_size++;
 	}
 	void push_back(const T& value) {
 		enlarge_capacity_if_need(m_size + 1);
-		::new(m_buffer + m_size) T(value);
+		new(m_buffer + m_size) T(value);
 		m_size++;
 	}
 	void push_back(T&& value) {
 		enlarge_capacity_if_need(m_size + 1);
-		::new(m_buffer + m_size) T(std::move(value));
+		new(m_buffer + m_size) T(std::move(value));
 		m_size++;
 	}
 	void pop_back() { 
@@ -110,6 +108,14 @@ public:
 		m_size = 0;
 	}
 	bool empty() const { return m_size == 0; }
+	T& at(const std::size_t index) {
+		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
+		return m_buffer[index];
+	}
+	const T& at(const std::size_t index) const {
+		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
+		return m_buffer[index];
+	}
 	std::size_t size() const { return m_size; }
 	std::size_t capacity() const { return m_capacity; }
 public:
