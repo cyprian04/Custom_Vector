@@ -4,16 +4,25 @@
 #include <algorithm>
 #include <vector>
 #include "Vector.h"
-
+#include <memory>
 
 void test1();
-void test2();
-void test3();
-void test4();
-void test5();
-void test6();
-void test7();
-
+//void test2();
+//void test3();
+//void test4();
+//void test5();
+//void test6();
+//void test7();
+//
+//struct A {
+//
+//    A() {    std::cout << "created obj A!" << std::endl; }
+//    ~A() { std::cout << "destroyed obj A!" << std::endl; }
+//    A(const A& rhs) = delete;
+//    A(A&&) noexcept { std::cout << "moved obj A!" << std::endl; }
+//    int a = 4;
+//    char c = 'A';
+//};
 
 int main()
 {
@@ -27,13 +36,33 @@ int main()
     _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
 
     try {
-        test1(); //ok
-        test2(); //ok
-        test3(); //ok
-        test4(); //ok
-        test5(); //ok
-        test6(); //ok
-        test7(); 
+        Vector<int> vec;
+
+        vec.push_back(5);
+        vec.push_back(10);
+        vec.push_back(15);
+       test1(); //ok
+       //test2(); //ok
+       //test3(); //ok
+       //test4(); //ok
+       //test5(); //ok
+       //test6(); //ok
+       //test7(); //ok
+       //
+       //
+       ///// on stack, alignas(type) allign space between blocks for specified type if need 
+       //alignas(A) char table[sizeof(A)];
+       //A* ptr = new(table) A();
+       //
+       //// on heap
+       //void* p = ::operator new(20);
+       //A* a = new(p) A();
+       //a->~A();
+       //A* b = new(p) A();
+       //A c = std::move_if_noexcept(*b);
+       //::operator delete(p);
+
+
     }
     catch (std::exception& e) {
         std::cout << std::endl << e.what();
@@ -49,10 +78,16 @@ void test1() {
     vec.push_back(5);
     vec.push_back(-19);
     vec.push_back(23);
+    vec.pop_back();
+    vec.pop_back();
+    vec.pop_back();
+    std::cout << vec;
+
     vec.push_back(1);
     vec.push_back(100);
+    std::cout << vec;
 }
-
+/*
 void test2() {
     Vector<int> vec1;
     vec1.push_back(5);
@@ -131,3 +166,4 @@ void test7()
     //std::cout << v1.at(-999) << std::endl; //triggers except correctly: Index out of bounds 
     std::cout << std::endl;
 }
+*/

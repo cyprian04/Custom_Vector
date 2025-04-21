@@ -13,23 +13,27 @@ public:
 		:
 		m_size(0),
 		m_capacity(2),
-		m_buffer(new T[m_capacity])
+		m_buffer(allocate(m_capacity))
 	{}
 	explicit Vector(const int size)
 		:
 		m_size(size),
 		m_capacity(2 * m_size),
-		m_buffer(new T[m_capacity]{ 0 })
+		m_buffer(allocate(m_capacity))
 	{}
 	explicit Vector(const std::initializer_list<T> list)
 		:
 		m_size(0),
 		m_capacity(2 * list.size()),
-		m_buffer(new T[m_capacity]{ 0 })
+		m_buffer(allocate(m_capacity))
 	{
 		for (auto element : list) push_back(element);
 	}
-	~Vector() { delete[] m_buffer; }
+	~Vector() 
+	{ 
+		deallocate(m_buffer); 
+	}
+	/*
 	Vector(const Vector& src)
 		:
 		m_size(src.m_size),
@@ -52,7 +56,7 @@ public:
 		}
 		return *this;
 	}
-	Vector(Vector&& src)
+	Vector(Vector&& src) noexcept
 		:
 		m_size(src.m_size),
 		m_capacity(src.m_capacity),
@@ -62,7 +66,7 @@ public:
 		src.m_capacity = 0;
 		src.m_buffer = nullptr;
 	}
-	Vector& operator=(Vector&& src) {
+	Vector& operator=(Vector&& src) noexcept{
 		if (this != &src) {
 			delete[] m_buffer;
 			m_buffer = nullptr;
@@ -77,37 +81,42 @@ public:
 		}
 		return *this;
 	}
+	*/
 public:
-	T& at(const std::size_t index)
-	{
+	T& at(const std::size_t index) {
 		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
 		return m_buffer[index];
 	}
-	const T& at(const std::size_t index) const
-	{
+	const T& at(const std::size_t index) const {
 		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
 		return m_buffer[index];
 	}
 	void push_back(const T& value) {
-		if (m_size + 1 == m_capacity) {
-			m_capacity *= 2;
-
-			T* const temp_buffer = new T[m_capacity];
-			for (size_t i = 0; i < m_size; i++)
-				temp_buffer[i] = m_buffer[i];
-
-			delete[] m_buffer;
-			m_buffer = temp_buffer;
-		}
-		m_buffer[m_size++] = value;
+		enlarge_capacity_if_need(m_size + 1);
+		::new(m_buffer + m_size) T(value);
+		m_size++;
 	}
-	void pop() { m_buffer[m_size--] = 0; }
+	void push_back(T&& value) {
+		enlarge_capacity_if_need(m_size + 1);
+		::new(m_buffer + m_size) T(std::move(value));
+		m_size++;
+	}
+	void pop_back() { 
+		if (m_size == 0) return;
+		(m_buffer + (--m_size))->~T();
+	}
 	bool empty() const { return m_size == 0; }
 	std::size_t size() const { return m_size; }
 	std::size_t capacity() const { return m_capacity; }
 public:
-	T& operator[](const std::size_t index) { return m_buffer[index]; }
-	const T& operator[](const std::size_t index) const { return m_buffer[index]; }
+	T& operator[](const std::size_t index) 
+	{
+		return m_buffer[index]; 
+	}
+	const T& operator[](const std::size_t index) const 
+	{ 
+		return m_buffer[index]; 
+	}
 	friend std::ostream& operator<<(std::ostream& os, const Vector<T>& vec) {
 		for (const auto element : vec) os << element << ", ";
 		return os;
@@ -149,6 +158,29 @@ public:
 	}
 	Iterator end() const {
 		return Iterator(&m_buffer[m_size]);
+	}
+private:
+	T* allocate(std::size_t size) {
+		return static_cast<T*>(::operator new(sizeof(T) * size));
+	}
+	void deallocate(T* ptr) {
+		::operator delete (ptr);
+	}
+	void enlarge_capacity_if_need(std::size_t minCapacity) {
+		if (minCapacity + 1 > m_capacity) {
+			std::size_t newCapacity = m_capacity * 2;
+			reallocate(newCapacity);
+		}
+	}
+	void reallocate(std::size_t newCapacity) {
+		T* newBuffer = allocate(newCapacity);
+		for (std::size_t i = 0; i < m_size ;i++) {
+			::new (newBuffer + i) T(std::move(m_buffer[i]));
+			(m_buffer + i)->~T();
+		}
+		deallocate(m_buffer);
+		m_buffer = newBuffer;
+		m_capacity = newCapacity;
 	}
 private:
 	std::size_t m_size;
