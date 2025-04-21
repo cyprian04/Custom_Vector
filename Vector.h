@@ -9,7 +9,7 @@ template <typename T>
 class Vector
 {
 public:
-	explicit Vector()
+	Vector()
 		:
 		m_size(0),
 		m_capacity(2),
@@ -29,30 +29,26 @@ public:
 	{
 		for (auto element : list) push_back(element);
 	}
-	~Vector() 
-	{ 
-		deallocate(m_buffer); 
-	}
-	/*
 	Vector(const Vector& src)
 		:
 		m_size(src.m_size),
 		m_capacity(src.m_capacity),
-		m_buffer(new T[m_capacity]{ 0 })
+		m_buffer(allocate(m_capacity))
 	{
-		for (std::size_t i = 0; i < m_size; i++) m_buffer[i] = src.m_buffer[i];
+		for (std::size_t i = 0; i < m_size; i++) 
+			::new (m_buffer + i)  T(src.m_buffer[i]);
 	}
 	Vector& operator=(const Vector& src) {
 
 		if (this != &src) {
-			delete[] m_buffer;
-			m_buffer = nullptr;
+			deallocate(m_buffer);
 
 			m_size = src.m_size;
 			m_capacity = src.m_capacity;
-			m_buffer = new T[m_capacity];
+			m_buffer = allocate(m_capacity);
 
-			for (std::size_t i = 0; i < m_size; i++) m_buffer[i] = src.m_buffer[i];
+			for (std::size_t i = 0; i < m_size; i++)
+				::new (m_buffer + i)  T(src.m_buffer[i]);
 		}
 		return *this;
 	}
@@ -66,10 +62,10 @@ public:
 		src.m_capacity = 0;
 		src.m_buffer = nullptr;
 	}
-	Vector& operator=(Vector&& src) noexcept{
+	Vector& operator=(Vector&& src) noexcept {
 		if (this != &src) {
-			delete[] m_buffer;
-			m_buffer = nullptr;
+			clear();
+			deallocate(m_buffer);
 
 			m_size = src.m_size;
 			m_capacity = src.m_capacity;
@@ -81,7 +77,10 @@ public:
 		}
 		return *this;
 	}
-	*/
+	~Vector() {
+		clear();
+		deallocate(m_buffer);
+	}
 public:
 	T& at(const std::size_t index) {
 		if (index >= m_size || index < 0) throw std::out_of_range("Index out of bounds");
@@ -104,6 +103,11 @@ public:
 	void pop_back() { 
 		if (m_size == 0) return;
 		(m_buffer + (--m_size))->~T();
+	}
+	void clear() {
+		for (std::size_t i = 0; i < m_size; i++)
+			(m_buffer + i)->~T();
+		m_size = 0;
 	}
 	bool empty() const { return m_size == 0; }
 	std::size_t size() const { return m_size; }
@@ -174,7 +178,7 @@ private:
 	}
 	void reallocate(std::size_t newCapacity) {
 		T* newBuffer = allocate(newCapacity);
-		for (std::size_t i = 0; i < m_size ;i++) {
+		for (std::size_t i = 0; i < m_size; i++) {
 			::new (newBuffer + i) T(std::move(m_buffer[i]));
 			(m_buffer + i)->~T();
 		}
